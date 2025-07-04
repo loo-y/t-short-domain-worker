@@ -13,6 +13,8 @@ export async function handleShorten(c: Context<{
 	}
 
 	let shortCode: string;
+	
+	console.log(`Received request to shorten URL: ${url}, custom_code: ${custom_code}, auto_create: ${auto_create}`);
 
 	if (custom_code) {
 		const existing = await c.env.LINKS.get(custom_code);
