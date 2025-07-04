@@ -47,7 +47,11 @@ As the initial developer, I performed the following key tasks:
 5.  **TypeScript Build Fix**: Resolved a critical build error (`Cannot find name 'KVNamespace'`) by:
     - Installing the `@cloudflare/workers-types` package.
     - Updating `tsconfig.worker.json` to include these types, allowing the TypeScript compiler to recognize Cloudflare-specific globals.
-6.  **Documentation**: 
+6.  **Enhanced `handleShorten` Logic**:
+    - Added an `auto_create` boolean parameter to the `POST /s` endpoint.
+    - If a requested `custom_code` already exists and `auto_create` is `false` or undefined, the API now returns the existing link's data instead of creating a new one.
+    - If `auto_create` is `true`, the service generates a new random code, preserving the old behavior.
+7.  **Documentation**: 
     - Created a comprehensive `README.md` with clear instructions for setup, local development, and API usage.
     - Updated `package.json` with an appropriate project name and description.
 

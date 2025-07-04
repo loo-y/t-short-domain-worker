@@ -80,6 +80,7 @@ Send a `POST` request to the `/s` endpoint.
 
 - `url` (string, required): The original URL to shorten.
 - `custom_code` (string, optional): A custom shortcode for the link.
+- `auto_create` (boolean, optional): If `custom_code` is taken, set to `true` to force the creation of a new random shortcode. Defaults to `false`.
 
 **Example with a custom shortcode:**
 
@@ -97,11 +98,29 @@ curl -X POST http://localhost:5173/s \
 -d '{"url": "https://www.cloudflare.com/"}'
 ```
 
-**Success Response:**
+**Example forcing a new code if the custom one is taken:**
+
+```bash
+curl -X POST http://localhost:5173/s \
+-H "Content-Type: application/json" \
+-d '{"url": "https://www.hono.dev/", "custom_code": "cf", "auto_create": true}'
+```
+
+**Success Response (New Link):**
 
 ```json
 {
   "short_url": "http://localhost:5173/cf"
+}
+```
+
+**Response When `custom_code` Exists (and `auto_create` is `false`):**
+
+```json
+{
+  "message": "Custom code already exists.",
+  "short_url": "http://localhost:5173/cf",
+  "destination_url": "https://www.cloudflare.com/"
 }
 ```
 

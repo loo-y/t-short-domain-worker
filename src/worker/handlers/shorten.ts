@@ -6,7 +6,7 @@ export async function handleShorten(c: Context<{
         LINKS: KVNamespace;
     };
 }>) {
-	const { url, custom_code } = await c.req.json<{ url: string; custom_code?: string }>();
+	const { url, custom_code, auto_create } = await c.req.json<{ url: string; custom_code?: string; auto_create?: boolean }>();
 
 	if (!url) {
 		return c.json({ error: 'URL is required' }, 400);
@@ -17,10 +17,20 @@ export async function handleShorten(c: Context<{
 	if (custom_code) {
 		const existing = await c.env.LINKS.get(custom_code);
 		if (existing) {
-			// Custom code is taken, generate a new unique random one
-			do {
-				shortCode = generateShortCode();
-			} while (await c.env.LINKS.get(shortCode));
+			if (auto_create) {
+				// Custom code is taken, but auto_create is true, so generate a new unique random one
+				do {
+					shortCode = generateShortCode();
+				} while (await c.env.LINKS.get(shortCode));
+			} else {
+				// Custom code is taken and auto_create is false/undefined, return the existing URL
+				const shortUrl = `${c.req.url.replace(c.req.path, '')}/${custom_code}`;
+				return c.json({
+					message: "Custom code already exists.",
+					short_url: shortUrl,
+					destination_url: existing
+				});
+			}
 		} else {
 			// Custom code is available
 			shortCode = custom_code;
