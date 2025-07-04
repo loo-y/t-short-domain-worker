@@ -1,6 +1,11 @@
-import { Hono } from "hono";
-const app = new Hono<{ Bindings: Env }>();
+import { Hono } from 'hono';
+import { App } from './types';
+import { handleShorten } from './handlers/shorten';
+import { handleRedirect } from './handlers/redirect';
 
-app.get("/api/", (c) => c.json({ name: "Cloudflare" }));
+const app: App = new Hono();
+
+app.post('/s', handleShorten);
+app.get('/:short_code', handleRedirect);
 
 export default app;

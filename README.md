@@ -1,83 +1,120 @@
-# React + Vite + Hono + Cloudflare Workers
+# Short Domain Worker
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/templates/tree/main/vite-react-template)
+A high-performance, scalable short domain service built with Cloudflare Workers, Hono, and Workers KV.
 
-This template provides a minimal setup for building a React application with TypeScript and Vite, designed to run on Cloudflare Workers. It features hot module replacement, ESLint integration, and the flexibility of Workers deployments.
+## Features
 
-![React + TypeScript + Vite + Cloudflare Workers](https://imagedelivery.net/wSMYJvS3Xw-n339CbDyDIA/fc7b4b62-442b-4769-641b-ad4422d74300/public)
+- **Custom Shortcodes**: Users can provide their own custom shortcodes.
+- **Random Shortcodes**: If no custom shortcode is provided, or if the custom shortcode is already taken, a unique 6-character random shortcode is generated.
+- **Fast Redirects**: Built on Cloudflare's edge network for lightning-fast redirects.
+- **Scalable**: Workers KV provides a scalable and fast storage solution.
 
-<!-- dash-content-start -->
+## Tech Stack
 
-🚀 Supercharge your web development with this powerful stack:
-
-- [**React**](https://react.dev/) - A modern UI library for building interactive interfaces
-- [**Vite**](https://vite.dev/) - Lightning-fast build tooling and development server
-- [**Hono**](https://hono.dev/) - Ultralight, modern backend framework
-- [**Cloudflare Workers**](https://developers.cloudflare.com/workers/) - Edge computing platform for global deployment
-
-### ✨ Key Features
-
-- 🔥 Hot Module Replacement (HMR) for rapid development
-- 📦 TypeScript support out of the box
-- 🛠️ ESLint configuration included
-- ⚡ Zero-config deployment to Cloudflare's global network
-- 🎯 API routes with Hono's elegant routing
-- 🔄 Full-stack development setup
-
-Get started in minutes with local development or deploy directly via the Cloudflare dashboard. Perfect for building modern, performant web applications at the edge.
-
-<!-- dash-content-end -->
+- [Cloudflare Workers](https://workers.cloudflare.com/)
+- [Hono](https://hono.dev/)
+- [Wrangler](https://developers.cloudflare.com/workers/wrangler/)
+- [TypeScript](https://www.typescriptlang.org/)
 
 ## Getting Started
 
-To start a new project with this template, run:
+### 1. Clone the Repository
 
 ```bash
-npm create cloudflare@latest -- --template=cloudflare/templates/vite-react-template
+git clone <your-repository-url>
+cd t-short-domain-worker
 ```
 
-A live deployment of this template is available at:
-[https://react-vite-template.templates.workers.dev](https://react-vite-template.templates.workers.dev)
-
-## Development
-
-Install dependencies:
+### 2. Install Dependencies
 
 ```bash
 npm install
 ```
 
-Start the development server with:
+### 3. Create KV Namespaces
+
+This service requires a Cloudflare Workers KV namespace to store the links.
+
+**Create the production namespace:**
+
+```bash
+npx wrangler kv namespace create "LINKS"
+```
+
+**Create the preview (for local development) namespace:**
+
+```bash
+npx wrangler kv namespace create "LINKS" --preview
+```
+
+After running these commands, copy the generated `id` and `preview_id` into your `wrangler.json` file:
+
+```json
+{
+  // ... other configurations
+  "kv_namespaces": [
+    {
+      "binding": "LINKS",
+      "id": "your-production-id-here",
+      "preview_id": "your-preview-id-here"
+    }
+  ]
+}
+```
+
+### 4. Start the Development Server
 
 ```bash
 npm run dev
 ```
 
-Your application will be available at [http://localhost:5173](http://localhost:5173).
+Your worker will be available at `http://localhost:5173`.
 
-## Production
+## API Usage
 
-Build your project for production:
+### Create a Short Link
 
-```bash
-npm run build
-```
+Send a `POST` request to the `/s` endpoint.
 
-Preview your build locally:
+**Request Body:**
 
-```bash
-npm run preview
-```
+- `url` (string, required): The original URL to shorten.
+- `custom_code` (string, optional): A custom shortcode for the link.
 
-Deploy your project to Cloudflare Workers:
+**Example with a custom shortcode:**
 
 ```bash
-npm run build && npm run deploy
+curl -X POST http://localhost:5173/s \
+-H "Content-Type: application/json" \
+-d '{"url": "https://www.cloudflare.com/", "custom_code": "cf"}'
 ```
 
-## Additional Resources
+**Example with a random shortcode:**
 
-- [Cloudflare Workers Documentation](https://developers.cloudflare.com/workers/)
-- [Vite Documentation](https://vitejs.dev/guide/)
-- [React Documentation](https://reactjs.org/)
-- [Hono Documentation](https://hono.dev/)
+```bash
+curl -X POST http://localhost:5173/s \
+-H "Content-Type: application/json" \
+-d '{"url": "https://www.cloudflare.com/"}'
+```
+
+**Success Response:**
+
+```json
+{
+  "short_url": "http://localhost:5173/cf"
+}
+```
+
+### Accessing a Short Link
+
+Simply navigate to the short URL in your browser, and you will be redirected to the original URL.
+
+For example, visiting `http://localhost:5173/cf` will redirect you to `https://www.cloudflare.com/`.
+
+## Deployment
+
+To deploy your worker to Cloudflare's global network, run:
+
+```bash
+npm run deploy
+```
